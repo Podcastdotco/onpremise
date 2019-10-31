@@ -1,14 +1,24 @@
 #!/bin/bash
+set -e
+
+if [ ! -f "./.env" ]; then
+  echo 'Error: missing .env file'
+  exit 1
+fi
 
 if ! [ -x "$(command -v docker-compose)" ]; then
   echo 'Error: docker-compose is not installed.' >&2
   exit 1
 fi
 
-domains=(sentry.testr.pw)
+set -o allexport
+source .env
+set +o allexport
+
+domains=($HOSTNAME)
 rsa_key_size=4096
 data_path="./config/certbot"
-email="dev@podcast.co" # Adding a valid address is strongly recommended
+email=$EMAIL # Adding a valid address is strongly recommended
 staging=0 # Set to 1 if you're testing your setup to avoid hitting request limits
 
 if [ -d "$data_path" ]; then
