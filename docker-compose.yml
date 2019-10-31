@@ -53,21 +53,24 @@ services:
       - ./config/certbot/conf:/etc/letsencrypt
       - ./config/certbot/www:/var/www/certbot
 
-nginx:
-  <<: *defaults
-  restart: unless-stopped
-  image: nginx:latest
-  volumes:
-    - ./conf.d:/etc/nginx/conf.d
-    - ./config/certbot/conf:/etc/letsencrypt
-    - ./config/certbot/www:/var/www/certbot
-  ports:
-    - "443:443"
-    - "80:80"
-  depends_on:
-    - web
-  command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
-
+  nginx:
+    <<: *defaults
+    restart: unless-stopped
+    image: nginx:latest
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d/template
+      - ./config/certbot/conf:/etc/letsencrypt
+      - ./config/certbot/www:/var/www/certbot
+    ports:
+      - "443:443"
+      - "80:80"
+    depends_on:
+      - web
+    # command: "/bin/sh -c ''"
+    command: >
+      /bin/bash -c "
+        envsubst '$$HOSTNAME' < /etc/nginx/conf.d/template/site.conf > /etc/nginx/conf.d/site.conf &&
+        exec nginx -g 'daemon off;'"
   web:
     <<: *defaults
     ports:
