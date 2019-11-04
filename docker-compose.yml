@@ -66,11 +66,11 @@ services:
       - "80:80"
     depends_on:
       - web
-    # command: "/bin/sh -c ''"
     command: >
       /bin/bash -c "
         envsubst '$$HOSTNAME' < /etc/nginx/conf.d/template/site.conf > /etc/nginx/conf.d/site.conf &&
         exec nginx -g 'daemon off;'"
+
   web:
     <<: *defaults
     ports:
