@@ -25,7 +25,6 @@ x-defaults: &defaults
   volumes:
     - sentry-data:/var/lib/sentry/files
 
-
 services:
   smtp:
     restart: unless-stopped
@@ -45,31 +44,14 @@ services:
     volumes:
       - sentry-postgres:/var/lib/postgresql/data
 
-  certbot:
-    image: certbot/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
-    volumes:
-      - ./config/certbot/conf:/etc/letsencrypt
-      - ./config/certbot/www:/var/www/certbot
-
-  nginx:
-    <<: *defaults
-    restart: unless-stopped
-    image: nginx:latest
-    volumes:
-      - ./conf.d:/etc/nginx/conf.d/template
-      - ./config/certbot/conf:/etc/letsencrypt
-      - ./config/certbot/www:/var/www/certbot
+  nginx_ssl:
+    image: valian/docker-nginx-auto-ssl:latest
     ports:
       - "443:443"
       - "80:80"
     depends_on:
       - web
-    command: >
-      /bin/bash -c "
-        envsubst '$$HOSTNAME' < /etc/nginx/conf.d/template/site.conf > /etc/nginx/conf.d/site.conf &&
-        exec nginx -g 'daemon off;'"
-
+      - redis
   web:
     <<: *defaults
 
