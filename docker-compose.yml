@@ -131,17 +131,6 @@ services:
         hard: 262144
     volumes:
       - sentry-postgres:/var/lib/postgresql/data
-
-  nginx_ssl:
-    image: valian/docker-nginx-auto-ssl:latest
-    env_file:
-      - .env
-    ports:
-      - "443:443"
-      - "80:80"
-    depends_on:
-      - web
-      - redis
       - "sentry-clickhouse:/var/lib/clickhouse"
       - "sentry-clickhouse-log:/var/log/clickhouse-server"
       - type: bind
@@ -260,8 +249,11 @@ services:
   nginx:
     <<: *restart_policy
     ports:
+      - "$SENTRY_BIND:443/tcp"
       - "$SENTRY_BIND:80/tcp"
-    image: "nginx:1.16"
+    image: valian/docker-nginx-auto-ssl:latest
+    env_file:
+      - .env
     volumes:
       - type: bind
         read_only: true
